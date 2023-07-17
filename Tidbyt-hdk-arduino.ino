@@ -1,7 +1,13 @@
 // Tidbyt Arduino Basic.  A simple starter project to get you going with your Tidbyt in the Arduino IDE. Comes with WifiManager
+// by tavdog
 
 #include <ESP32-HUB75-MatrixPanel-I2S-DMA.h>
 #include <WiFiManager.h>
+#include <HTTPClient.h>
+
+int update_interval_seconds = 1;
+String data_url = "http://wildc.net/wind/minsec.pl";  // must return text string only
+int brightness = 50;
 
 WiFiManager wifiManager;
 
@@ -29,15 +35,17 @@ void setup() {
   } else {
     Serial.println("[setup] matrix initialized");
   }
-  matrix.setBrightness8(100); //0-255
+  matrix.setBrightness8(brightness); //0-255
   matrix.setLatBlanking(1);
   matrix.clearScreen();
-  marqueeText("Tidbyt", matrix.color565(0,255,255));  
+  marqueeText("Tidbyt", matrix.color565(0,255,255));
+  delay(5000);
 
-  WiFi.setHostname("Tidbyt_Config");
   WiFi.setAutoReconnect(true);
   WiFi.begin();
   bool res;
+  marqueeText("WiFi", matrix.color565(255,0,255));
+  
   res = wifiManager.autoConnect("Tidbyt_Config"); // no password
 
     if(!res) {
@@ -47,13 +55,38 @@ void setup() {
     else {
         //if you get here you have connected to the WiFi    
         Serial.println("connected...yeey :)");
-    }
-  
+        marqueeText("Connected!", matrix.color565(255,255,0));
 
+    }
 }
 
+HTTPClient http;
 void loop() {
-  // put your main code here, to run repeatedly:
+  WiFiClient client;
+  Serial.print("[HTTP] begin...\n");
+  http.begin(client,data_url.c_str()); //HTTP
+  
+  Serial.print("[HTTP] GET...\n");
+  // start connection and send HTTP header
+  int httpCode = http.GET();
+  
+  // httpCode will be negative on error
+  if(httpCode > 0) {
+      // HTTP header has been send and Server response header has been handled
+      Serial.printf("[HTTP] GET... code: %d\n", httpCode);
+  
+      // file found at server
+      if(httpCode == HTTP_CODE_OK) {
+          String payload = http.getString();
+          Serial.println(payload);
+          marqueeText(payload,matrix.color565(0,255,255));
+      }
+  } else {
+      Serial.printf("[HTTP] GET... failed, error: %s\n", http.errorToString(httpCode).c_str());
+  }
+  
+  http.end();
+  delay(update_interval_seconds * 1000);
 
 }
 
