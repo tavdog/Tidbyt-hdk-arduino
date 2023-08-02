@@ -14,13 +14,14 @@ WiFiManager wifiManager;
 // Initialize the HUB75 panel.
 //HUB75_I2S_CFG::i2s_pins _pins = {21, 2, 22, 23, 4, 27, 26, 5, 25, 18, -1, 19, 32, 33}; // newer model
 HUB75_I2S_CFG::i2s_pins _pins = {2, 22, 21, 4, 27, 23, 26, 5, 25, 18, -1, 19, 32, 33}; // older model
+
 HUB75_I2S_CFG mxconfig(64,                     // width
-                       32,                     // height
-                       1,                      // chain length
-                       _pins);                   // pin mapping
-//                       HUB75_I2S_CFG::FM6126A, // driver chip
-//                       true,                   // double-buffering
-//                       HUB75_I2S_CFG::HZ_10M);
+                        32,                     // height
+                        1,                      // chain length
+                        _pins,                   // pin mapping
+                       HUB75_I2S_CFG::FM6126A, // driver chip
+                       false,                   // double-buffering
+                       HUB75_I2S_CFG::HZ_10M);
 
 MatrixPanel_I2S_DMA matrix = MatrixPanel_I2S_DMA(mxconfig);
 
